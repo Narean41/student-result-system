@@ -117,6 +117,25 @@ app.get('/logout', (req, res) => {
   res.redirect('/');
 });
 
+// Update Marks
+app.post('/staff/update-mark', (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'staff') return res.redirect('/');
+  const { id, internal_marks, external_marks } = req.body;
+  
+  db.prepare('UPDATE marks SET internal_marks = ?, external_marks = ? WHERE id = ?')
+    .run(internal_marks, external_marks, id);
+  res.redirect('/staff/dashboard');
+});
+
+// Delete Single Mark
+app.post('/staff/delete-mark', (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'staff') return res.redirect('/');
+  const { id } = req.body;
+  
+  db.prepare('DELETE FROM marks WHERE id = ?').run(id);
+  res.redirect('/staff/dashboard');
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
