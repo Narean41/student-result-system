@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Staff Portal - Manage Students</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6 font-sans">
+  <div class="max-w-6xl mx-auto space-y-8">
+    
+    <!-- Header with Logout -->
+    <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
+      <div>
+        <h1 class="text-xl font-bold text-white tracking-wide">Staff Management Dashboard</h1>
+        <p class="text-xs text-slate-400 mt-1">Manage, edit, and review student records in real time</p>
+      </div>
+      <a href="/logout" class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-red-500 hover:text-white transition-all duration-200">
+        Logout
+      </a>
+    </div>
+
+    <!-- Forms Section: Add Student & Add Marks -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Box 1: Add Student -->
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+        <h2 class="text-sm font-semibold text-blue-400 mb-4 uppercase tracking-wider">+ Add Student</h2>
+        <form action="/staff/add-student" method="POST" class="space-y-3">
+          <input type="text" name="reg_no" placeholder="Register Number (e.g. REG104)" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-blue-500 outline-none">
+          <input type="text" name="name" placeholder="Full Name" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-blue-500 outline-none">
+          <input type="date" name="dob" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-400 focus:border-blue-500 outline-none">
+          <input type="text" name="department" placeholder="Department (e.g. CSE)" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-blue-500 outline-none">
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded-xl text-sm font-semibold transition">Save Student</button>
+        </form>
+      </div>
+
+      <!-- Box 2: Add Subject & Marks -->
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+        <h2 class="text-sm font-semibold text-emerald-400 mb-4 uppercase tracking-wider">+ Add Subject & Marks</h2>
+        <form action="/staff/add-mark" method="POST" class="space-y-3">
+          <select name="reg_no" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-emerald-500 outline-none">
+            <option value="" disabled selected>Select Student</option>
+            <% students.forEach(s => { %>
+              <option value="<%= s.reg_no %>"><%= s.name %> (<%= s.reg_no %>)</option>
+            <% }) %>
+          </select>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" name="subject_code" placeholder="Sub Code (e.g. CS301)" required class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-emerald-500 outline-none">
+            <input type="text" name="subject_name" placeholder="Sub Name (e.g. DBMS)" required class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-emerald-500 outline-none">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" name="internal_marks" placeholder="Internal (30)" max="30" required class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-emerald-500 outline-none">
+            <input type="number" name="external_marks" placeholder="External (70)" max="70" required class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-emerald-500 outline-none">
+          </div>
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2 rounded-xl text-sm font-semibold transition">Save Marks</button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Box 3: Manage Student Details (Excel-like Editable Table) -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+      <div class="mb-4">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <span>📊</span> Manage Student Details
+        </h2>
+        <p class="text-xs text-slate-400">Direct-ah cell details change panni 'Update' click pannalam, illana 'Delete' pannalam.</p>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-950/50">
+              <th class="py-3 px-3">Reg No</th>
+              <th class="py-3 px-3">Student Name</th>
+              <th class="py-3 px-3">DOB</th>
+              <th class="py-3 px-3">Department</th>
+              <th class="py-3 px-3 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800 text-sm">
+            <% if (students.length === 0) { %>
+              <tr>
+                <td colspan="5" class="py-6 text-center text-slate-500">Records ethuvum illa.</td>
+              </tr>
+            <% } %>
+
+            <% students.forEach(student => { %>
+              <tr class="hover:bg-slate-800/30">
+                <!-- Inline Edit Form -->
+                <form action="/staff/update-student" method="POST">
+                  <td class="py-2 px-3 font-mono font-bold text-blue-400">
+                    <%= student.reg_no %>
+                    <input type="hidden" name="reg_no" value="<%= student.reg_no %>">
+                  </td>
+                  <td class="py-2 px-3">
+                    <input type="text" name="name" value="<%= student.name %>" required class="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-sm text-slate-200 focus:border-blue-500 outline-none w-full">
+                  </td>
+                  <td class="py-2 px-3">
+                    <input type="date" name="dob" value="<%= student.dob %>" required class="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-sm text-slate-200 focus:border-blue-500 outline-none w-full">
+                  </td>
+                  <td class="py-2 px-3">
+                    <input type="text" name="department" value="<%= student.department %>" required class="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-sm text-slate-200 focus:border-blue-500 outline-none w-full">
+                  </td>
+                  <td class="py-2 px-3">
+                    <div class="flex items-center justify-center gap-2">
+                      <button type="submit" title="Save changes" class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 px-3 py-1 rounded-lg text-xs font-semibold transition">
+                        Update
+                      </button>
+                </form>
+
+                <!-- Delete Action -->
+                <form action="/staff/delete-student" method="POST" onsubmit="return confirm('Intha student-ah confirm-ah delete pannava?');" class="inline">
+                  <input type="hidden" name="reg_no" value="<%= student.reg_no %>">
+                  <button type="submit" title="Remove student" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 px-3 py-1 rounded-lg text-xs font-semibold transition">
+                    Delete
+                  </button>
+                </form>
+                    </div>
+                  </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

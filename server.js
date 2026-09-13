@@ -4,77 +4,106 @@ const path = require('path');
 const db = require('./database');
 
 const app = express();
+const PORT = process.env.PORT || 10000;
 
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
 app.use(session({
-  secret: 'student_portal_secret_key_999',
+  secret: 'student_secret_key_123',
   resave: false,
   saveUninitialized: false
 }));
 
+// Home / Login Page
 app.get('/', (req, res) => {
   res.render('index', { error: null });
 });
 
-// Student Login (Reg No + DOB)
-app.post('/auth/student', (req, res) => {
+// Student Login Route
+app.post('/student/login', (req, res) => {
   const { reg_no, dob } = req.body;
-  const student = db.prepare('SELECT * FROM students WHERE UPPER(reg_no) = UPPER(?) AND dob = ?').get(reg_no.trim(), dob.trim());
+  const student = db.prepare('SELECT * FROM students WHERE reg_no = ? AND dob = ?').get(reg_no, dob);
+
   if (student) {
-    req.session.user = { role: 'student', data: student };
-    return res.redirect('/student/dashboard');
+    req.session.user = { ...student, role: 'student' };
+    return res.redirect('/student/result');
   }
   res.render('index', { error: 'Invalid Register Number or DOB!' });
 });
 
-// Staff Login
-app.post('/auth/staff', (req, res) => {
+// Student Result Page
+app.get('/student/result', (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'student') return res.redirect('/');
+  
+  const marks = db.prepare('SELECT * FROM marks WHERE reg_no = ?').all(req.session.user.reg_no);
+  res.render('result', { student: req.session.user, marks });
+});
+
+// Staff Login Route
+app.post('/staff/login', (req, res) => {
   const { username, password } = req.body;
-  const staff = db.prepare('SELECT * FROM staff WHERE username = ? AND password = ?').get(username.trim(), password.trim());
-  if (staff) {
-    req.session.user = { role: 'staff', data: staff };
+  if (username === 'staff1' && password === 'staff123') {
+    req.session.user = { username, role: 'staff' };
     return res.redirect('/staff/dashboard');
   }
-  res.render('index', { error: 'Invalid Staff Username or Password!' });
+  res.render('index', { error: 'Invalid Staff Credentials!' });
 });
 
-// Student View Results
-app.get('/student/dashboard', (req, res) => {
-  if (!req.session.user || req.session.user.role !== 'student') return res.redirect('/');
-  const student = req.session.user.data;
-  const marks = db.prepare('SELECT * FROM marks WHERE UPPER(reg_no) = UPPER(?)').all(student.reg_no);
-  res.render('student-dashboard', { student, marks });
-});
-
-// Staff Dashboard
+// Staff Dashboard View
 app.get('/staff/dashboard', (req, res) => {
   if (!req.session.user || req.session.user.role !== 'staff') return res.redirect('/');
-  const students = db.prepare('SELECT * FROM students').all();
-  res.render('staff-dashboard', { staff: req.session.user.data, students });
+  
+  const students = db.prepare('SELECT * FROM students ORDER BY reg_no ASC').all();
+  const marks = db.prepare('SELECT * FROM marks').all();
+  res.render('staff-dashboard', { students, marks });
 });
 
-// Staff: Add Student
+// Add New Student
 app.post('/staff/add-student', (req, res) => {
   if (!req.session.user || req.session.user.role !== 'staff') return res.redirect('/');
   const { reg_no, name, dob, department } = req.body;
+  
   try {
-    db.prepare('INSERT INTO students (reg_no, name, dob, department) VALUES (?, ?, ?, ?)').run(reg_no.trim().toUpperCase(), name.trim(), dob, department.trim());
+    db.prepare('INSERT INTO students (reg_no, name, dob, department) VALUES (?, ?, ?, ?)').run(reg_no, name, dob, department);
   } catch (err) {
-    console.log(err.message);
+    console.error("Error inserting student:", err.message);
   }
   res.redirect('/staff/dashboard');
 });
 
-// Staff: Add Mark
+// Add Subject & Marks
 app.post('/staff/add-mark', (req, res) => {
   if (!req.session.user || req.session.user.role !== 'staff') return res.redirect('/');
   const { reg_no, subject_code, subject_name, internal_marks, external_marks } = req.body;
-  db.prepare('INSERT INTO marks (reg_no, subject_code, subject_name, internal_marks, external_marks) VALUES (?, ?, ?, ?, ?)')
-    .run(reg_no.toUpperCase(), subject_code.toUpperCase(), subject_name, parseInt(internal_marks), parseInt(external_marks));
+  
+  try {
+    db.prepare('INSERT INTO marks (reg_no, subject_code, subject_name, internal_marks, external_marks) VALUES (?, ?, ?, ?, ?)').run(reg_no, subject_code, subject_name, internal_marks, external_marks);
+  } catch (err) {
+    console.error("Error inserting marks:", err.message);
+  }
+  res.redirect('/staff/dashboard');
+});
+
+// Update Student (Edit details)
+app.post('/staff/update-student', (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'staff') return res.redirect('/');
+  const { reg_no, name, dob, department } = req.body;
+  
+  db.prepare('UPDATE students SET name = ?, dob = ?, department = ? WHERE reg_no = ?').run(name, dob, department, reg_no);
+  res.redirect('/staff/dashboard');
+});
+
+// Delete Student
+app.post('/staff/delete-student', (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'staff') return res.redirect('/');
+  const { reg_no } = req.body;
+  
+  db.prepare('DELETE FROM marks WHERE reg_no = ?').run(reg_no);
+  db.prepare('DELETE FROM students WHERE reg_no = ?').run(reg_no);
   res.redirect('/staff/dashboard');
 });
 
@@ -84,7 +113,6 @@ app.get('/logout', (req, res) => {
   res.redirect('/');
 });
 
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
