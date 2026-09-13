@@ -27,14 +27,14 @@ db.exec(`
 
 // Demo accounts
 const addStaff = db.prepare('INSERT OR IGNORE INTO staff (username, password, name) VALUES (?, ?, ?)');
-addStaff.run('staff1', 'staff123', 'Prof. Ramesh');
+addStaff.run('staff1', 'staff123', 'Prof. Kanimozhi');
 
 const addStudent = db.prepare('INSERT OR IGNORE INTO students (reg_no, name, dob, department) VALUES (?, ?, ?, ?)');
-addStudent.run('REG101', 'Narean', '2004-05-15', 'Computer Science & Engineering');
+addStudent.run('REG101', 'Narean', '2008-01-04', 'Computer Science & Engineering');
 
 const addMark = db.prepare('INSERT OR IGNORE INTO marks (reg_no, subject_code, subject_name, internal_marks, external_marks) VALUES (?, ?, ?, ?, ?)');
-addMark.run('REG101', 'CS301', 'Data Structures', 24, 68);
-addMark.run('REG101', 'CS302', 'Operating Systems', 22, 65);
-addMark.run('REG101', 'CS303', 'Database Management Systems', 25, 69);
+addMark.run('REG101', 'CS301', 'Object Oriented Programming', 24, 68);
+addMark.run('REG101', 'CS302', 'Data Structures and Algorithm', 22, 65);
+addMark.run('REG101', 'CS303', 'Foundation of Data Science', 25, 69);
 
 module.exports = db;
