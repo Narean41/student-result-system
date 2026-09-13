@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Result</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6 font-sans flex items-center justify-center">
+  <div class="max-w-2xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-6">
+    
+    <!-- Top Header -->
+    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+      <div>
+        <h1 class="text-xl font-bold text-white"><%= student.name %></h1>
+        <p class="text-xs text-blue-400 font-mono mt-1"><%= student.reg_no %> | <%= student.department %></p>
+      </div>
+      <a href="/logout" class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-red-500 hover:text-white transition">Logout</a>
+    </div>
+
+    <!-- Marks Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-950/50">
+            <th class="py-3 px-3">Subject Code</th>
+            <th class="py-3 px-3">Subject Name</th>
+            <th class="py-3 px-3 text-center">Internal (30)</th>
+            <th class="py-3 px-3 text-center">External (70)</th>
+            <th class="py-3 px-3 text-center">Total (100)</th>
+            <th class="py-3 px-3 text-center">Result</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800 text-sm">
+          <% if (marks.length === 0) { %>
+            <tr>
+              <td colspan="6" class="py-6 text-center text-slate-500">Marks yet to be published.</td>
+            </tr>
+          <% } %>
+
+          <% marks.forEach(m => { 
+              const total = (m.internal_marks || 0) + (m.external_marks || 0);
+              const passed = (m.external_marks >= 35) && (total >= 50);
+          %>
+            <tr class="hover:bg-slate-800/30">
+              <td class="py-3 px-3 font-mono text-slate-300"><%= m.subject_code %></td>
+              <td class="py-3 px-3 font-medium text-white"><%= m.subject_name %></td>
+              <td class="py-3 px-3 text-center text-slate-400"><%= m.internal_marks %></td>
+              <td class="py-3 px-3 text-center text-slate-400"><%= m.external_marks %></td>
+              <td class="py-3 px-3 text-center font-bold text-slate-200"><%= total %></td>
+              <td class="py-3 px-3 text-center">
+                <% if (passed) { %>
+                  <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-xs font-semibold">PASS</span>
+                <% } else { %>
+                  <span class="bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded text-xs font-semibold">RA</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</body>
+</html>
