@@ -2,19 +2,66 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Student Result</title>
+  <title>Student Result - <%= student.name %></title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background-color: white !important;
+        color: black !important;
+      }
+      .print-card {
+        border: 1px solid #ccc !important;
+        background-color: white !important;
+        color: black !important;
+        box-shadow: none !important;
+      }
+      .print-text-dark {
+        color: black !important;
+      }
+    }
+  </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-6 font-sans flex items-center justify-center">
-  <div class="max-w-2xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-6">
+  <div class="print-card max-w-3xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
     
-    <!-- Top Header -->
-    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+    <!-- Top Action Bar (Print-la theriyathu) -->
+    <div class="flex justify-between items-center border-b border-slate-800 pb-5 no-print">
       <div>
-        <h1 class="text-xl font-bold text-white"><%= student.name %></h1>
-        <p class="text-xs text-blue-400 font-mono mt-1"><%= student.reg_no %> | <%= student.department %></p>
+        <h1 class="text-xl font-bold text-white">Student Examination Result</h1>
+        <p class="text-xs text-slate-400 mt-0.5">Official Academic Scorecard</p>
       </div>
-      <a href="/logout" class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-red-500 hover:text-white transition">Logout</a>
+      <div class="flex items-center gap-3">
+        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-md">
+          <span>🖨️</span> Print / Save PDF
+        </button>
+        <a href="/logout" class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-red-500 hover:text-white transition">
+          Logout
+        </a>
+      </div>
+    </div>
+
+    <!-- Student Details Card -->
+    <div class="bg-slate-950/60 p-5 rounded-xl border border-slate-800/80 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+      <div>
+        <p class="text-xs text-slate-500 uppercase font-semibold">Student Name</p>
+        <p class="font-bold text-white print-text-dark text-base mt-0.5"><%= student.name %></p>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500 uppercase font-semibold">Register Number</p>
+        <p class="font-mono font-bold text-blue-400 print-text-dark mt-0.5"><%= student.reg_no %></p>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500 uppercase font-semibold">Department</p>
+        <p class="font-medium text-slate-300 print-text-dark mt-0.5"><%= student.department %></p>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500 uppercase font-semibold">Date of Birth</p>
+        <p class="font-medium text-slate-300 print-text-dark mt-0.5"><%= student.dob %></p>
+      </div>
     </div>
 
     <!-- Marks Table -->
@@ -42,11 +89,11 @@
               const passed = (m.external_marks >= 35) && (total >= 50);
           %>
             <tr class="hover:bg-slate-800/30">
-              <td class="py-3 px-3 font-mono text-slate-300"><%= m.subject_code %></td>
-              <td class="py-3 px-3 font-medium text-white"><%= m.subject_name %></td>
-              <td class="py-3 px-3 text-center text-slate-400"><%= m.internal_marks %></td>
-              <td class="py-3 px-3 text-center text-slate-400"><%= m.external_marks %></td>
-              <td class="py-3 px-3 text-center font-bold text-slate-200"><%= total %></td>
+              <td class="py-3 px-3 font-mono text-slate-300 print-text-dark"><%= m.subject_code %></td>
+              <td class="py-3 px-3 font-medium text-white print-text-dark"><%= m.subject_name %></td>
+              <td class="py-3 px-3 text-center text-slate-400 print-text-dark"><%= m.internal_marks %></td>
+              <td class="py-3 px-3 text-center text-slate-400 print-text-dark"><%= m.external_marks %></td>
+              <td class="py-3 px-3 text-center font-bold text-slate-200 print-text-dark"><%= total %></td>
               <td class="py-3 px-3 text-center">
                 <% if (passed) { %>
                   <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-xs font-semibold">PASS</span>
