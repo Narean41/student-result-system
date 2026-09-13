@@ -23,8 +23,8 @@ app.get('/', (req, res) => {
   res.render('index', { error: null });
 });
 
-// Student Login Route
-app.post('/student/login', (req, res) => {
+// Student Login (Both routes support pannum)
+const handleStudentLogin = (req, res) => {
   const { reg_no, dob } = req.body;
   const student = db.prepare('SELECT * FROM students WHERE reg_no = ? AND dob = ?').get(reg_no, dob);
 
@@ -33,7 +33,9 @@ app.post('/student/login', (req, res) => {
     return res.redirect('/student/result');
   }
   res.render('index', { error: 'Invalid Register Number or DOB!' });
-});
+};
+app.post('/auth/student', handleStudentLogin);
+app.post('/student/login', handleStudentLogin);
 
 // Student Result Page
 app.get('/student/result', (req, res) => {
@@ -43,15 +45,17 @@ app.get('/student/result', (req, res) => {
   res.render('result', { student: req.session.user, marks });
 });
 
-// Staff Login Route
-app.post('/staff/login', (req, res) => {
+// Staff Login (Both routes support pannum)
+const handleStaffLogin = (req, res) => {
   const { username, password } = req.body;
   if (username === 'staff1' && password === 'staff123') {
     req.session.user = { username, role: 'staff' };
     return res.redirect('/staff/dashboard');
   }
   res.render('index', { error: 'Invalid Staff Credentials!' });
-});
+};
+app.post('/auth/staff', handleStaffLogin);
+app.post('/staff/login', handleStaffLogin);
 
 // Staff Dashboard View
 app.get('/staff/dashboard', (req, res) => {
@@ -62,7 +66,7 @@ app.get('/staff/dashboard', (req, res) => {
   res.render('staff-dashboard', { students, marks });
 });
 
-// Add New Student
+// Add Student
 app.post('/staff/add-student', (req, res) => {
   if (!req.session.user || req.session.user.role !== 'staff') return res.redirect('/');
   const { reg_no, name, dob, department } = req.body;
@@ -75,7 +79,7 @@ app.post('/staff/add-student', (req, res) => {
   res.redirect('/staff/dashboard');
 });
 
-// Add Subject & Marks
+// Add Mark
 app.post('/staff/add-mark', (req, res) => {
   if (!req.session.user || req.session.user.role !== 'staff') return res.redirect('/');
   const { reg_no, subject_code, subject_name, internal_marks, external_marks } = req.body;
@@ -88,7 +92,7 @@ app.post('/staff/add-mark', (req, res) => {
   res.redirect('/staff/dashboard');
 });
 
-// Update Student (Edit details)
+// Update Student
 app.post('/staff/update-student', (req, res) => {
   if (!req.session.user || req.session.user.role !== 'staff') return res.redirect('/');
   const { reg_no, name, dob, department } = req.body;
